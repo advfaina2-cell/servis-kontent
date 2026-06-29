@@ -47,33 +47,38 @@ export default function OnboardingUploadPage() {
       parsePastedPosts(text).forEach(p => addExample(p, 'file'))
     }
     reader.readAsText(file)
+    e.target.value = ''
   }
 
   async function handleAnalyze() {
     if (examples.length < 3) return
     setSaving(true)
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: voice } = await supabase
-      .from('voices')
-      .insert({ user_id: user.id, name: 'Мой голос', is_default: true })
-      .select()
-      .single()
+      const { data: voice } = await supabase
+        .from('voices')
+        .insert({ user_id: user.id, name: 'Мой голос', is_default: true })
+        .select()
+        .single()
 
-    if (!voice) { setSaving(false); return }
+      if (!voice) return
 
-    await supabase.from('style_examples').insert(
-      examples.map(ex => ({
-        user_id: user.id,
-        voice_id: voice.id,
-        content: ex.content,
-        source: ex.source,
-      }))
-    )
+      await supabase.from('style_examples').insert(
+        examples.map(ex => ({
+          user_id: user.id,
+          voice_id: voice.id,
+          content: ex.content,
+          source: ex.source,
+        }))
+      )
 
-    router.push(`/onboarding/voice?voice_id=${voice.id}`)
+      router.push(`/onboarding/voice?voice_id=${voice.id}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -106,7 +111,7 @@ export default function OnboardingUploadPage() {
             type="button"
             variant="outline"
             onClick={handlePasteAdd}
-            disabled={pasteText.trim().length < 20}
+            disabled={pasteText.trim().length <= 20}
             className="border-white/10"
           >
             Добавить из текста
