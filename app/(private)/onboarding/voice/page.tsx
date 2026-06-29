@@ -11,7 +11,7 @@ export default function OnboardingVoicePage() {
   const voiceId = params.get('voice_id')
 
   const [state, setState] = useState<'analyzing' | 'done' | 'error'>('analyzing')
-  const [styleJson, setStyleJson] = useState<object | null>(null)
+  const [styleJson, setStyleJson] = useState<Record<string, unknown> | null>(null)
   const [preview, setPreview] = useState<{ withVoice: string; withoutVoice: string } | null>(null)
   const [loadingPreview, setLoadingPreview] = useState(false)
 
@@ -37,23 +37,28 @@ export default function OnboardingVoicePage() {
   async function loadPreview() {
     if (!voiceId) return
     setLoadingPreview(true)
-    const res = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        topic: 'утренние привычки продуктивных людей',
-        voice_id: voiceId,
-        platform: 'linkedin',
-        tone: 'default',
-        preview_mode: true,
-      }),
-    })
-    const data = await res.json()
-    setPreview({
-      withVoice: data.results?.[0]?.text ?? '',
-      withoutVoice: data.generic ?? '',
-    })
-    setLoadingPreview(false)
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: 'утренние привычки продуктивных людей',
+          voice_id: voiceId,
+          platform: 'linkedin',
+          tone: 'default',
+          preview_mode: true,
+        }),
+      })
+      const data = await res.json()
+      setPreview({
+        withVoice: data.results?.[0]?.text ?? '',
+        withoutVoice: data.generic ?? '',
+      })
+    } catch {
+      // /api/generate doesn't exist yet (T8), will show empty preview
+    } finally {
+      setLoadingPreview(false)
+    }
   }
 
   if (state === 'analyzing') {
@@ -89,7 +94,7 @@ export default function OnboardingVoicePage() {
           <p className="text-text-muted mt-1 text-sm">Вот что мы поняли о вашем стиле</p>
         </div>
 
-        {styleJson && <VoiceCard styleJson={styleJson as any} />}
+        {styleJson && <VoiceCard styleJson={styleJson} />}
 
         {!preview && (
           <Button

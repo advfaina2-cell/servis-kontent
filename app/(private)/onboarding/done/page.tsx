@@ -20,6 +20,7 @@ export default async function OnboardingDonePage() {
     .single()
 
   const remaining = 3 - (profile?.generation_count ?? 0)
+  const postWord = remaining === 1 ? 'пост' : remaining >= 2 && remaining <= 4 ? 'поста' : 'постов'
 
   return (
     <div className="min-h-screen bg-canvas flex items-center justify-center p-6">
@@ -28,7 +29,7 @@ export default async function OnboardingDonePage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Голос сохранён</h1>
           <p className="text-text-muted mt-2">
-            Осталось {remaining} бесплатных {remaining === 1 ? 'пост' : 'поста'}
+            Осталось {remaining} бесплатных {postWord}
           </p>
         </div>
         <Link href="/generate">

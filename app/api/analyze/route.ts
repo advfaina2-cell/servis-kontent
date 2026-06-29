@@ -11,6 +11,10 @@ export async function POST(request: NextRequest) {
 
   const { voice_id } = await request.json()
 
+  if (!voice_id) {
+    return NextResponse.json({ error: 'voice_id is required' }, { status: 400 })
+  }
+
   const { data: examples } = await supabase
     .from('style_examples')
     .select('content')
@@ -33,11 +37,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to parse style JSON' }, { status: 500 })
   }
 
-  await supabase
+  const { error: updateError } = await supabase
     .from('voices')
     .update({ style_json: styleJson })
     .eq('id', voice_id)
     .eq('user_id', user.id)
+
+  if (updateError) {
+    return NextResponse.json({ error: 'Failed to save style' }, { status: 500 })
+  }
 
   return NextResponse.json({ styleJson })
 }
