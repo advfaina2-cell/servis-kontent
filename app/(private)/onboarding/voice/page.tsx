@@ -55,7 +55,6 @@ export default function OnboardingVoicePage() {
         withoutVoice: data.generic ?? '',
       })
     } catch {
-      // /api/generate doesn't exist yet (T8), will show empty preview
     } finally {
       setLoadingPreview(false)
     }
