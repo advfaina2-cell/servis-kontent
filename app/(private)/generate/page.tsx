@@ -36,6 +36,12 @@ export default function GeneratePage() {
   const [isSubscribed, setIsSubscribed] = useState(false)
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
+    const urlTopic = searchParams.get('topic')
+    const urlPlatform = searchParams.get('platform')
+    if (urlTopic) setTopic(urlTopic)
+    if (urlPlatform) setPlatform(urlPlatform)
+
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return
